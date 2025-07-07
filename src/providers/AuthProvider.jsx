@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth'
 import { app } from '../firebase/firebase.config'
 import axios from 'axios'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null)
@@ -94,9 +95,13 @@ const AuthProvider = ({ children }) => {
     updateUserProfile,
   }
 
-  return (
-    <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>
-  )
+  
+return (
+  <AuthContext.Provider value={authInfo}>
+    {loading ? <div className="min-h-screen flex justify-center items-center"><LoadingSpinner /></div> : children}
+  </AuthContext.Provider>
+)
+
 }
 
 export default AuthProvider
