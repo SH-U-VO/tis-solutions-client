@@ -138,7 +138,7 @@ export default function Carousel() {
       </div>
 
       {/* Custom CSS for enhanced styling */}
-      <style jsx>{`
+      <style>{`
         .mySwiper {
           height: 100vh !important;
           width: 100vw !important;

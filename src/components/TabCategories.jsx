@@ -114,7 +114,7 @@ const TabCategories = () => {
                 {
                   services?.map((service, index) => (
                     <div 
-                      key={service.id}
+                      key={service._id}
                       className="transform hover:scale-105 transition-all duration-300 h-full"
                       style={{
                         animationDelay: `${index * 100}ms`,
@@ -139,7 +139,7 @@ const TabCategories = () => {
                     ?.filter(service => service.category === 'Household Services')
                     .map((service, index) => (
                       <div 
-                        key={service.id}
+                        key={service._id}
                         className="transform hover:scale-105 transition-all duration-300 h-full"
                         style={{
                           animationDelay: `${index * 100}ms`,
@@ -164,7 +164,7 @@ const TabCategories = () => {
                     ?.filter(service => service.category === 'Consultation')
                     .map((service, index) => (
                       <div 
-                        key={service.id}
+                        key={service._id}
                         className="transform hover:scale-105 transition-all duration-300 h-full"
                         style={{
                           animationDelay: `${index * 100}ms`,
@@ -189,7 +189,7 @@ const TabCategories = () => {
                     ?.filter(service => service.category === 'Transportation')
                     .map((service, index) => (
                       <div 
-                        key={service.id}
+                        key={service._id}
                         className="transform hover:scale-105 transition-all duration-300 h-full"
                         style={{
                           animationDelay: `${index * 100}ms`,

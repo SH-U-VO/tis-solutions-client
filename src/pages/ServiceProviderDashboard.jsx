@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, Clock, Play, AlertCircle, Eye, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 
 const ServiceProviderDashboard = () => {
   // Sample data for service requests
@@ -126,12 +128,12 @@ const ServiceProviderDashboard = () => {
     <p className="text-gray-600">Manage your service requests and track their progress</p>
   </div>
   <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
-    <button
-      onClick={() => alert("Add New Service clicked!")}
+    <Link
+      to='/add-service'
       className="inline-flex items-center px-5 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg shadow hover:from-purple-600 hover:to-indigo-700 transition"
     >
       ➕ Add New Services
-    </button>
+    </Link>
     <button
       onClick={() => alert("Show Previous Works clicked!")}
       className="inline-flex items-center px-5 py-2 bg-gradient-to-r from-green-400 to-teal-500 text-white rounded-lg shadow hover:from-green-500 hover:to-teal-600 transition"

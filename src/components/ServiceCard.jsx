@@ -105,7 +105,7 @@ const ServiceCard = ({ service }) => {
           </div>
         </div>
 
-        {/* Provider Info - Fixed Height */}
+        Provider Info - Fixed Height
         <div className="flex items-center mb-3 min-h-[24px]">
           <div className="flex items-center text-sm text-gray-600">
             <FaShieldAlt className="text-blue-500 mr-1" />
@@ -145,22 +145,6 @@ const ServiceCard = ({ service }) => {
           </div>
         </div>
 
-        {/* Features Tags - Fixed Height */}
-        <div className="flex flex-wrap gap-2 mb-4 min-h-[32px]">
-          {features?.slice(0, 3).map((feature, index) => (
-            <span 
-              key={index}
-              className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-blue-100 hover:text-blue-700 transition-colors duration-300"
-            >
-              {feature}
-            </span>
-          ))}
-          {features?.length > 3 && (
-            <span className="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">
-              +{features.length - 3} more
-            </span>
-          )}
-        </div>
 
         {/* Availability - Fixed Height */}
         <div className="flex items-center mb-4 min-h-[20px]">
@@ -189,14 +173,14 @@ const ServiceCard = ({ service }) => {
 
         {/* Action Buttons - Fixed Height */}
         <div className="flex gap-3 mt-auto">
-          <button className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center">
+          <button className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white btn rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center">
             <FaShoppingCart className="mr-2" />
             Book Now
           </button>
           
           <Link
           to={`/service-details/${_id}`}
-          className="px-6 py-3 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+          className="btn border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
             <FaEye className="mr-2" />
             View Details
           </Link> 

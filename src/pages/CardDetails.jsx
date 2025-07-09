@@ -1,32 +1,40 @@
 import React, { useContext, useState } from 'react';
 import { Star, Heart, Share2, ArrowLeft, ShoppingCart, MapPin, Clock, Award, Users, MessageCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthProvider';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import LoadingSpinner from '../components/LoadingSpinner';
+import axios from 'axios';
 
 const CardDetails = () => {
-  const { id } = useParams()
-  const {user } = useContext(AuthContext)
-  const navigate = useNavigate()
+  const { id } = useParams();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedImage, setSelectedImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  console.log(id);
 
-
-  const {data: services, isLoading} = useQuery({
-    queryKey: ['services'], queryFn: async () => {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/services`)
-      console.log(data)
-      return data
+  const { data: services, isLoading } = useQuery({
+    queryKey: ['services'],
+    queryFn: async () => {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/services`);
+      console.log(data);
+      return data;
     }
-  })
-console.log(services)
-  console.log(services.find(service => service._id=== id))
+  });
+
+  if (isLoading) return <LoadingSpinner />;
+  console.log(services);
+  const service = services.find(service => service._id === id);
+  console.log(service);
 
   // Service data based on your structure
- 
+  // Note: The 'specifications' array is now part of the 'service' object
+  // and will be dynamically rendered.
+
   const reviews = [
     {
       id: 1,
@@ -95,7 +103,9 @@ console.log(services)
           <div className="flex items-center justify-between h-16">
             <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
               <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Back</span>
+              <Link
+                to='/'
+                className="font-medium">Back</Link>
             </button>
             <div className="flex items-center space-x-4">
               <button
@@ -122,29 +132,12 @@ console.log(services)
           <div className="space-y-4">
             <div className="aspect-square bg-white rounded-2xl shadow-lg overflow-hidden">
               <img
-                src={service.images[selectedImage]}
-                alt={service.title}
+                src={service?.image}
+                alt={service?.title}
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="flex space-x-3">
-              {service.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${selectedImage === index
-                      ? 'border-blue-500 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${service.title} ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+
           </div>
 
           {/* Service Info */}
@@ -152,37 +145,37 @@ console.log(services)
             <div>
               <div className="flex items-center space-x-3 mb-2">
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                  {service.category}
+                  {service?.category}
                 </span>
-                {service.isPopular && (
+                {service?.isPopular && (
                   <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
                     Popular
                   </span>
                 )}
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{service.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">{service?.title}</h1>
               <div className="flex items-center space-x-4 mb-6">
                 <div className="flex items-center space-x-1">
-                  {renderStars(service.rating)}
+                  {renderStars(service?.rating)}
                   <span className="text-sm text-gray-600 ml-2">
-                    {service.rating} ({service.totalReviews} reviews)
+                    {service?.rating} ({service?.totalReviews} reviews)
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-green-600">
                   <Award className="w-4 h-4" />
-                  <span>{service.provider.verified ? 'Verified Provider' : 'Provider'}</span>
+                  <span>{service?.provider?.verified ? 'Verified Provider' : 'Provider'}</span>
                 </div>
               </div>
               <div className="flex items-center space-x-4 mb-6">
-                <span className="text-3xl font-bold text-gray-900">৳{service.price}</span>
-                <span className="text-xl text-gray-500 line-through">৳{service.originalPrice}</span>
+                <span className="text-3xl font-bold text-gray-900">৳{service?.price}</span>
+                <span className="text-xl text-gray-500 line-through">৳{service?.originalPrice}</span>
                 <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
-                  {service.discount}% OFF
+                  {service?.discount}% OFF
                 </span>
               </div>
             </div>
 
-            <p className="text-gray-600 leading-relaxed">{service.description}</p>
+            <p className="text-gray-600 leading-relaxed">{service?.description}</p>
 
             {/* Service Provider */}
             <div className="bg-gray-50 rounded-xl p-4">
@@ -190,14 +183,14 @@ console.log(services)
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-lg">
-                    {service.provider.name.charAt(0)}
+                    {/* {service?.provider?.name.charAt(0)} */}
                   </span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">{service.provider.name}</h4>
-                  <p className="text-sm text-gray-600">{service.provider.experience}</p>
+                  <h4 className="font-semibold text-gray-900">{service?.provider?.name}</h4>
+                  <p className="text-sm text-gray-600">{service?.provider?.experience}</p>
                 </div>
-                {service.provider.verified && (
+                {service?.provider?.verified && (
                   <div className="flex items-center space-x-1 text-green-600">
                     <Award className="w-4 h-4" />
                     <span className="text-sm">Verified</span>
@@ -210,7 +203,7 @@ console.log(services)
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Service Features</h3>
               <ul className="space-y-2">
-                {service.features.map((feature, index) => (
+                {service?.features.map((feature, index) => (
                   <li key={index} className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <span className="text-gray-700">{feature}</span>
@@ -223,15 +216,15 @@ console.log(services)
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center space-x-3 text-sm">
                 <Clock className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-700">Duration: {service.duration}</span>
+                <span className="text-gray-700">Duration: {service?.duration}</span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <MapPin className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-700">Location: {service.location}</span>
+                <span className="text-gray-700">Location: {service?.location}</span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <Users className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-700">Availability: {service.availability}</span>
+                <span className="text-gray-700">Availability: {service?.availability}</span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <Award className="w-4 h-4 text-gray-500" />
@@ -257,11 +250,11 @@ console.log(services)
             <div className="border-t pt-6 space-y-3">
               <div className="flex items-center space-x-3 text-sm">
                 <MapPin className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-700">Service available in {service.location}</span>
+                <span className="text-gray-700">Service available in {service?.location}</span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <Clock className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-700">Service duration: {service.duration}</span>
+                <span className="text-gray-700">Service duration: {service?.duration}</span>
               </div>
             </div>
           </div>
@@ -292,7 +285,7 @@ console.log(services)
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-900">Service Overview</h2>
                 <p className="text-gray-600 leading-relaxed">
-                  {service.description} Our skilled technicians provide professional repair services with genuine parts and comprehensive warranty coverage.
+                  {service?.description} Our skilled technicians provide professional repair services with genuine parts and comprehensive warranty coverage.
                   We ensure quality service with quick turnaround times and reliable solutions for all your electronic device needs.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -319,31 +312,16 @@ console.log(services)
 
             {activeTab === 'specifications' && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900">Service Details</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.entries(service.serviceDetails).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center py-3 border-b border-gray-100">
-                      <span className="font-medium text-gray-900">{key}</span>
-                      <span className="text-gray-600">{value}</span>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Service Specifications</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {service?.specifications?.map((spec, index) => (
+                    <div key={index} className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg shadow-sm">
+                      <Clock className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" /> {/* Example icon */}
+                      <p className="text-gray-700">
+                        {spec}
+                      </p>
                     </div>
                   ))}
-                </div>
-                <div className="bg-blue-50 rounded-xl p-6 mt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Provider Information</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-900">Provider Name</span>
-                      <span className="text-gray-600">{service.provider.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-900">Experience</span>
-                      <span className="text-gray-600">{service.provider.experience}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-900">Verification Status</span>
-                      <span className="text-green-600">{service.provider.verified ? 'Verified' : 'Not Verified'}</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
@@ -364,12 +342,12 @@ console.log(services)
                 <div className="bg-gray-50 rounded-xl p-6">
                   <div className="flex items-center space-x-8">
                     <div className="text-center">
-                      <div className="text-4xl font-bold text-gray-900">{service.rating}</div>
+                      <div className="text-4xl font-bold text-gray-900">{service?.rating}</div>
                       <div className="flex items-center justify-center mt-2">
-                        {renderStars(service.rating)}
+                        {renderStars(service?.rating)}
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
-                        Based on {service.totalReviews} reviews
+                        Based on {service?.totalReviews} reviews
                       </div>
                     </div>
                     <div className="flex-1">
