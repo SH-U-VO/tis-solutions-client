@@ -1,7 +1,59 @@
-import React, { useState } from 'react';
+import { useContext, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, X, Upload, MapPin, Clock, Star, Award, Camera, Save, Eye } from 'lucide-react';
+import { useMyAxios } from '../hooks/useAxiosSecure';
+import toast from 'react-hot-toast';
+import { AuthContext } from '../providers/AuthProvider';
 
 const AddServices = () => {
+  // mutation of tan stack query 
+  const { user } = useContext(AuthContext)
+  console.log(user.email)
+  const myAxios = useMyAxios()
+  const queryClient = useQueryClient()
+
+
+  // When this mutation succeeds, invalidate any queries with the `todos` or `reminders` query key
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async finalData => {
+      await myAxios.post(`/add-service`, finalData)
+    },
+    onSuccess: () => {
+      console.log('data saved')
+      queryClient.invalidateQueries({ queryKey: ['services'] })
+      setFormData({
+        // All your fields set back to their initial empty/default values
+        title: '',
+        description: '',
+        image: '',
+        price: '',
+        originalPrice: '',
+        duration: '',
+        location: '',
+        isPopular: false,
+        features: [''],
+        category: '',
+        provider: {
+          ProviderEmail: user?.email || '',
+          ProviderName: '',
+          verified: false,
+          experience: ''
+        },
+        consumer: {
+          ConsumerEmail: '',
+          ConsumerName: '',
+        },
+        availability: '',
+        discount: 0
+      });
+      setImagePreview('');
+    },
+    onError: () => {
+      console.log('err')
+    }
+  })
+
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,9 +66,14 @@ const AddServices = () => {
     features: [''],
     category: '',
     provider: {
-      name: '',
+      ProviderEmail: user.email || '',
+      ProviderName: '',
       verified: false,
       experience: ''
+    },
+    consumer: {
+      ConsumerEmail: '',
+      ConsumerName: '',
     },
     availability: '',
     discount: 0
@@ -27,15 +84,9 @@ const AddServices = () => {
 
   const categories = [
     'Household Services',
-    'Electronics Repair',
-    'Home Maintenance',
-    'Cleaning Services',
-    'Plumbing',
-    'Electrical',
-    'AC Repair',
-    'Appliance Repair',
-    'Computer Services',
-    'Mobile Repair'
+    'Consultation Services',
+    'Transportation Services',
+
   ];
 
   const availabilityOptions = [
@@ -96,22 +147,35 @@ const AddServices = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // Filter out empty features
+  const handleSubmit = async () => {
+    
     const filteredFeatures = formData.features.filter(feature => feature.trim() !== '');
     const finalData = {
       ...formData,
       features: filteredFeatures,
-      id: Date.now(), // Generate a simple ID
-      _id: Date.now().toString(),
       rating: 0,
       totalReviews: 0
     };
-    
+
+    for (let key in finalData) {
+      if (!finalData[key]) {
+        return alert(`${key} is required`);
+      }
+    }
+
+
+    try {
+      await mutateAsync(finalData); // ✅ Correct usage
+      toast.success('Data Added Successfully');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Something went wrong');
+    }
+
     console.log('Service Data:', finalData);
-    // Here you would typically send the data to your backend
     alert('Service added successfully!');
   };
+
 
   const ServicePreview = () => (
     <div className="bg-white rounded-2xl shadow-lg p-6 border">
@@ -124,14 +188,14 @@ const AddServices = () => {
           <X className="w-5 h-5" />
         </button>
       </div>
-      
+
       <div className="space-y-4">
         {imagePreview && (
           <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
             <img src={imagePreview} alt="Service preview" className="w-full h-full object-cover" />
           </div>
         )}
-        
+
         <div className="flex items-center space-x-2">
           <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
             {formData.category || 'Category'}
@@ -142,9 +206,9 @@ const AddServices = () => {
             </span>
           )}
         </div>
-        
+
         <h4 className="text-xl font-bold text-gray-900">{formData.title || 'Service Title'}</h4>
-        
+
         <div className="flex items-center space-x-4">
           {formData.price && (
             <>
@@ -160,11 +224,11 @@ const AddServices = () => {
             </>
           )}
         </div>
-        
+
         {formData.description && (
           <p className="text-gray-600 text-sm">{formData.description}</p>
         )}
-        
+
         <div className="grid grid-cols-2 gap-3 text-sm">
           {formData.duration && (
             <div className="flex items-center space-x-2">
@@ -194,24 +258,24 @@ const AddServices = () => {
             <div className="absolute top-0 right-1/4 w-72 h-72 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-75"></div>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-72 h-72 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-150"></div>
           </div>
-          
+
           {/* Main content */}
           <div className="relative z-10 bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50">
             {/* Icon with animation */}
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mb-6 shadow-lg">
               <Plus className="w-10 h-10 text-white animate-bounce" />
             </div>
-            
+
             {/* Title with gradient */}
             <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4 leading-tight">
               Add New Service
             </h1>
-            
+
             {/* Subtitle with better styling */}
             <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto font-medium">
               Create a comprehensive service listing to attract more customers
             </p>
-            
+
             {/* Feature badges */}
             <div className="flex flex-wrap justify-center gap-3 mb-6">
               <span className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
@@ -227,14 +291,14 @@ const AddServices = () => {
                 Local Reach
               </span>
             </div>
-            
+
             {/* Progress indicator */}
             <div className="flex justify-center items-center space-x-2 mb-4">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse delay-75"></div>
               <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse delay-150"></div>
             </div>
-            
+
             {/* Call to action text */}
             <p className="text-sm text-gray-500 font-medium">
               ✨ Join thousands of successful service providers
@@ -252,7 +316,7 @@ const AddServices = () => {
                   <Award className="w-5 h-5 mr-2 text-blue-600" />
                   Basic Information
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Title *</label>
@@ -266,7 +330,7 @@ const AddServices = () => {
                       required
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                     <textarea
@@ -279,7 +343,7 @@ const AddServices = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                     <select
@@ -295,7 +359,7 @@ const AddServices = () => {
                       ))}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
                     <select
@@ -310,7 +374,7 @@ const AddServices = () => {
                       ))}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Duration</label>
                     <input
@@ -322,7 +386,7 @@ const AddServices = () => {
                       placeholder="e.g., 2-3 hours"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Location</label>
                     <input
@@ -334,7 +398,7 @@ const AddServices = () => {
                       placeholder="e.g., All Areas, Dhaka"
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <label className="flex items-center space-x-3">
                       <input
@@ -356,7 +420,7 @@ const AddServices = () => {
                   <Star className="w-5 h-5 mr-2 text-green-600" />
                   Pricing Information
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Price (৳) *</label>
@@ -371,7 +435,7 @@ const AddServices = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Original Price (৳)</label>
                     <input
@@ -384,7 +448,7 @@ const AddServices = () => {
                       placeholder="1200"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Discount (%)</label>
                     <input
@@ -406,7 +470,7 @@ const AddServices = () => {
                   <Plus className="w-5 h-5 mr-2 text-purple-600" />
                   Service Features
                 </h2>
-                
+
                 <div className="space-y-4">
                   {formData.features.map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3">
@@ -428,7 +492,7 @@ const AddServices = () => {
                       )}
                     </div>
                   ))}
-                  
+
                   <button
                     type="button"
                     onClick={addFeature}
@@ -446,7 +510,7 @@ const AddServices = () => {
                   <Award className="w-5 h-5 mr-2 text-orange-600" />
                   Provider Information
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Provider Name *</label>
@@ -460,7 +524,7 @@ const AddServices = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
                     <input
@@ -472,7 +536,7 @@ const AddServices = () => {
                       placeholder="e.g., 8+ years"
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <label className="flex items-center space-x-3">
                       <input
@@ -494,7 +558,7 @@ const AddServices = () => {
                   <Camera className="w-5 h-5 mr-2 text-indigo-600" />
                   Service Image
                 </h2>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
@@ -507,7 +571,7 @@ const AddServices = () => {
                       placeholder="https://example.com/image.jpg"
                     />
                   </div>
-                  
+
                   {imagePreview && (
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
                       <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
@@ -523,10 +587,11 @@ const AddServices = () => {
                   onClick={handleSubmit}
                   className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                 >
+                  {/* {isPending ? 'Saving...' : 'Save'} */}
                   <Save className="w-5 h-5" />
-                  <span>Add Service</span>
+                  {isPending ? <span>Saving..</span> : <span>Add Service</span>}
                 </button>
-                
+
                 <button
                   type="button"
                   onClick={() => setPreviewMode(true)}
