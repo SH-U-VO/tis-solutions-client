@@ -12,7 +12,6 @@ const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 const [isServicesOpen, setIsServicesOpen] = useState(false);
 const [isMobileServicesOpen, setIsMobileServicesOpen] = useState(false);
-    console.log(user)
     
     const handleDropdownToggle = () => {
         setIsDropdownOpen(!isDropdownOpen);

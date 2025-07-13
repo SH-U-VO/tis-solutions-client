@@ -9,6 +9,8 @@ import AddServices from '../pages/AddServices'
 import MyBookedServices from '../pages/MyBookedServices'
 import ServiceProviderDashboard from '../pages/ServiceProviderDashboard'
 import PrivateRoute from './PrivateRoute'
+import AllMyPostedServices from '../pages/AllMyPostedServices'
+import UpdateMyService from '../pages/UpdateMyService'
 
 
 const router = createBrowserRouter([
@@ -21,10 +23,6 @@ const router = createBrowserRouter([
         index: true,
         element: <Home />,
       },
-      // {
-      //   path: '/jobs',
-      //   element: <AllJobs />,
-      // },
       {
         path: '/login',
         element: <Login />,
@@ -53,54 +51,14 @@ const router = createBrowserRouter([
         path: '/my-posted-services',
         element: <ServiceProviderDashboard />,
       },
-      // {
-      //   path: '/job/:id',
-      //   element: (
-      //     <PrivateRoute>
-      //       <JobDetails />
-      //     </PrivateRoute>
-      //   ),
-      // },
-      // {
-      //   path: '/update/:id',
-      //   element: (
-      //     <PrivateRoute>
-      //       <UpdateJob />
-      //     </PrivateRoute>
-      //   ),
-      // },
-      // {
-      //   path: '/add-job',
-      //   element: (
-      //     <PrivateRoute>
-      //       <AddJob />
-      //     </PrivateRoute>
-      //   ),
-      // },
-      // {
-      //   path: '/my-bids',
-      //   element: (
-      //     <PrivateRoute>
-      //       <MyBids />
-      //     </PrivateRoute>
-      //   ),
-      // },
-      // {
-      //   path: '/my-posted-jobs',
-      //   element: (
-      //     <PrivateRoute>
-      //       <MyPostedJobs />
-      //     </PrivateRoute>
-      //   ),
-      // },
-      // {
-      //   path: '/bid-requests',
-      //   element: (
-      //     <PrivateRoute>
-      //       <BidRequests />
-      //     </PrivateRoute>
-      //   ),
-      // },
+      {
+        path: '/all-my-posted-services',
+        element: <AllMyPostedServices/>,
+      },
+      {
+        path: '/update-service/:id',
+        element: <UpdateMyService />,
+      },
     ],
   },
 ])

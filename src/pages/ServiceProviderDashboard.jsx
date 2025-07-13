@@ -4,8 +4,7 @@ import {
   MapPin, Calendar, DollarSign
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useMyAxios } from '../hooks/useAxiosSecure';
-import { AuthContext } from '../providers/AuthProvider';
+
 
 const ServiceProviderDashboard = () => {
   const [requests, setRequests] = useState([
@@ -75,18 +74,7 @@ const ServiceProviderDashboard = () => {
     }
   ]);
 
-  const myAxios = useMyAxios()
-  const {user} = useContext(AuthContext)
-  
-  useEffect(() => {
-    
-  })
 
-  const fetchAllServices = async () => {
-    const {data} = await myAxios.get(`/services/${user?.email}`)
-    setRequests(data)
-  }
- fetchAllServices()
 
   const [selectedRequest, setSelectedRequest] = useState(null);
 
@@ -152,12 +140,12 @@ const ServiceProviderDashboard = () => {
             >
               ➕ Add New Services
             </Link>
-            <button
-              onClick={() => alert("Show Previous Works clicked!")}
+            <Link
+              to='/all-my-posted-services'
               className="inline-flex items-center px-5 py-2 bg-gradient-to-r from-green-400 to-teal-500 text-white rounded-lg shadow hover:from-green-500 hover:to-teal-600 transition"
             >
-              🛠️ Show My Previous Works
-            </button>
+              🛠️ All of My Posted Services
+            </Link>
           </div>
         </div>
 

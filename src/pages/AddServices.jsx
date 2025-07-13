@@ -8,7 +8,7 @@ import { AuthContext } from '../providers/AuthProvider';
 const AddServices = () => {
   // mutation of tan stack query 
   const { user } = useContext(AuthContext)
-  console.log(user.email)
+  console.log(user)
   const myAxios = useMyAxios()
   const queryClient = useQueryClient()
 
@@ -67,7 +67,7 @@ const AddServices = () => {
     category: '',
     provider: {
       ProviderEmail: user.email || '',
-      ProviderName: '',
+      ProviderName: user.displayName || '',
       verified: false,
       experience: ''
     },
@@ -157,8 +157,8 @@ const AddServices = () => {
       totalReviews: 0
     };
 
-    for (let key in finalData) {
-      if (!finalData[key]) {
+    for (let key in formData) {
+      if (!formData[key]) {
         return alert(`${key} is required`);
       }
     }
