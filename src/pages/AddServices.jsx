@@ -39,10 +39,8 @@ const AddServices = () => {
           verified: false,
           experience: ''
         },
-        consumer: {
-          ConsumerEmail: '',
-          ConsumerName: '',
-        },
+        consumers: [],
+        wishlist:[],
         availability: '',
         discount: 0
       });
@@ -71,10 +69,8 @@ const AddServices = () => {
       verified: false,
       experience: ''
     },
-    consumer: {
-      ConsumerEmail: '',
-      ConsumerName: '',
-    },
+    consumers: [],
+    wishlist:[],
     availability: '',
     discount: 0
   });
@@ -148,7 +144,7 @@ const AddServices = () => {
   };
 
   const handleSubmit = async () => {
-    
+
     const filteredFeatures = formData.features.filter(feature => feature.trim() !== '');
     const finalData = {
       ...formData,

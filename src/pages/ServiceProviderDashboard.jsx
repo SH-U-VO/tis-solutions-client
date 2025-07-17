@@ -10,19 +10,19 @@ const ServiceProviderDashboard = () => {
   const [requests, setRequests] = useState([
     {
       id: 1,
-      customerName: "John Doe",
+      // customerName: "John Doe",
       customerEmail: "john@example.com",
-      customerPhone: "+1234567890",
+      // customerPhone: "+1234567890", 
       serviceTitle: "TV and Electronic Gadgets Repair",
       serviceType: "Household Services",
       requestDate: "2024-01-15",
-      preferredDate: "2024-01-18",
+      // preferredDate: "2024-01-19",
       location: "Downtown Area",
       price: 800,
       status: "pending",
       description: "My TV screen is flickering and making strange noises. Need urgent repair.",
-      customerAddress: "123 Main St, Downtown",
-      urgency: "high"
+      // customerAddress: "123 Main St, Downtown",
+      // urgency: "high"
     },
     {
       id: 2,
