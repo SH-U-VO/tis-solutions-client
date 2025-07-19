@@ -161,7 +161,7 @@ const TabCategories = () => {
               <div className='relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8 xl:mt-16 auto-rows-fr'>
                 {
                   services
-                    ?.filter(service => service.category === 'Consultation')
+                    ?.filter(service => service.category === 'Consultation Services')
                     .map((service, index) => (
                       <div 
                         key={service._id}
@@ -186,7 +186,7 @@ const TabCategories = () => {
               <div className='relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8 xl:mt-16 auto-rows-fr'>
                 {
                   services
-                    ?.filter(service => service.category === 'Transportation')
+                    ?.filter(service => service.category === 'Transportation Services')
                     .map((service, index) => (
                       <div 
                         key={service._id}

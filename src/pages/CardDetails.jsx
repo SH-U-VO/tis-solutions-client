@@ -1,23 +1,24 @@
-import React, { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Star, Heart, Share2, ArrowLeft, ShoppingCart, MapPin, Clock, Award, Users, MessageCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthProvider';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import { FaTimes } from 'react-icons/fa';
+import { useLoading } from '../context/LoadingContext';
 
 const CardDetails = () => {
   const { id } = useParams();
+  const { setIsLoading } = useLoading();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  console.log(id);
 
-  const { data: services, isLoading } = useQuery({
+  const { data: services } = useQuery({
     queryKey: ['services'],
     queryFn: async () => {
       const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/services`);
@@ -26,14 +27,239 @@ const CardDetails = () => {
     }
   });
 
-  if (isLoading) return <LoadingSpinner />;
-  console.log(services);
-  const service = services.find(service => service._id === id);
-  console.log(service);
+
+  const service = services?.find(service => service._id === id);
+  console.log(service)
+
+  useEffect(() => {
+    if (!service || !user) return;
+    if (service && user) {
+      const isAlreadyLiked = service?.wishlist.some(email => email === user?.email);
+      setIsWishlisted(isAlreadyLiked);
+    }
+  }, [service, user]);
+
+  const toggleWishlist = async () => {
+    setIsWishlisted(!isWishlisted);
+
+    if (!isWishlisted) {
+      try {
+        await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${id}`, {
+          wishlistEmail: user.email,
+          inWishlist: true
+        });
+        toast.success('Added to Wishlist');
+      } catch (err) {
+        console.error('Added error:', err);
+        toast.error(err.response?.data?.message || 'Failed to Add Wishlist');
+      }
+    } else {
+      try {
+        await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${id}`, {
+          wishlistEmail: user.email,
+          inWishlist: false
+        });
+        toast.success('Removed from Wishlist');
+      } catch (err) {
+        console.error('Removed error:', err);
+        toast.error(err.response?.data?.message || 'Failed to Remove Wishlist');
+      }
+    }
+
+
+  };
 
   // Service data based on your structure
   // Note: The 'specifications' array is now part of the 'service' object
   // and will be dynamically rendered.
+
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    const form = e.target;
+    const phoneNumber = form.phoneNumber.value;
+    const preferredDate = form.preferredDate.value;
+    const address = form.address.value;
+    const urgency = form.urgency.value;
+
+    const myData = {
+      consumers: {
+        ConsumerEmail: user.email || '',
+        ConsumerName: user.displayName || '',
+        phoneNumber: phoneNumber || '',
+        preferredDate: preferredDate || '',
+        address: address || '',
+        urgency: urgency || ''
+      }
+    };
+
+    console.log(myData);
+
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${id}`, myData); // ✅ use myData directly
+      toast.success('Service booked successfully');
+
+      toast.dismiss(t.id); // Dismiss FIRST
+      setIsLoading(true);   // THEN show spinner
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1100); // Optional delay
+
+      navigate('/')
+    } catch (err) {
+      console.error('Update error:', err);
+      toast.error(err.response?.data?.message || 'Failed to book service');
+    }
+  };
+
+  // Submit button toast
+  const showBookingToast = () => {
+    toast.custom(
+      (t) => (
+        <div
+          className={`${t.visible ? 'animate-enter' : 'animate-leave'} 
+        relative max-w-lg w-full bg-white shadow-2xl rounded-xl overflow-hidden
+        pointer-events-auto flex flex-col transform transition-all duration-300 ease-in-out
+        ring-1 ring-blue-300 ring-opacity-70 border border-blue-100`}
+        >
+          {/* Header with gradient and subtle shadow */}
+          <div className="flex justify-between items-center p-5 bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-md">
+            <h3 className="text-xl font-extrabold flex items-center gap-2">
+              {/* A more engaging icon for booking */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A1 1 0 0011.383 2H8.617a1 1 0 00-.707.293L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+              </svg>
+              Book Your Service
+            </h3>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id); // Dismiss FIRST
+                setIsLoading(true);   // THEN show spinner
+                setTimeout(() => {
+                  setIsLoading(false);
+                }, 1100); // Optional delay
+              }}
+              className="p-1 rounded-full text-white hover:bg-white hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition-colors"
+              aria-label="Close"
+            >
+              <FaTimes className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Form Body */}
+          <form onSubmit={handleSubmit}>
+            <div className="p-6 bg-white space-y-5 flex-grow">
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  name="ConsumerName"
+                  defaultValue={user.displayName || ''}
+                  disabled={true}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base
+             bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none"
+                />
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base
+             focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="e.g., +880 1XXXXXXXXX"
+                  required
+                />
+              </div>
+
+              {/* Preferred Date */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Preferred Date</label>
+                <input
+                  type="date"
+                  name="preferredDate"
+
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base
+             focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  required
+                />
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Address</label>
+                <textarea
+                  name="address"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base
+             focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  rows="2"
+                  placeholder="Your full address for service delivery"
+                  required
+                />
+              </div>
+
+              {/* Urgency */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Urgency</label>
+                <select
+                  name="urgency"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base
+             focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              {/* Footer Buttons */}
+              <div className="flex border-t border-gray-100 bg-gray-50 rounded-b-xl overflow-hidden items-center">
+                <button
+                  type="submit"
+                  className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-base font-semibold
+                     hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 
+                     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      ),
+      {
+        duration: Infinity, // Toast won't auto-dismiss
+        position: "top-center",
+      }
+    )
+  };
+
+  const handleShare = () => {
+    // Share logic here
+    console.log('Shared');
+  };
+
+  const renderStars = (rating, interactive = false, size = 'w-4 h-4') => {
+    return (
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`${size} ${star <= rating
+              ? 'text-yellow-400 fill-yellow-400'
+              : 'text-gray-300'
+              } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
+            onClick={() => interactive && setUserRating(star)}
+          />
+        ))}
+      </div>
+    );
+  };
+
+
 
   const reviews = [
     {
@@ -68,33 +294,6 @@ const CardDetails = () => {
     }
   ];
 
-  const handleBookService = () => {
-    // Book service logic here
-    console.log('Service booked');
-  };
-
-  const handleShare = () => {
-    // Share logic here
-    console.log('Shared');
-  };
-
-  const renderStars = (rating, interactive = false, size = 'w-4 h-4') => {
-    return (
-      <div className="flex items-center space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`${size} ${star <= rating
-                ? 'text-yellow-400 fill-yellow-400'
-                : 'text-gray-300'
-              } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
-            onClick={() => interactive && setUserRating(star)}
-          />
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
@@ -109,11 +308,11 @@ const CardDetails = () => {
             </button>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => setIsLiked(!isLiked)}
-                className={`p-2 rounded-full transition-colors ${isLiked ? 'text-red-500 bg-red-50' : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
+                onClick={toggleWishlist}
+                className={`p-2 rounded-full transition-colors ${isWishlisted ? 'text-red-500 bg-red-50' : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
                   }`}
               >
-                <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
               </button>
               <button
                 onClick={handleShare}
@@ -235,7 +434,7 @@ const CardDetails = () => {
             {/* Action Buttons */}
             <div className="flex space-x-4">
               <button
-                onClick={handleBookService}
+                onClick={showBookingToast}
                 className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
               >
                 <Users className="w-5 h-5" />
@@ -269,8 +468,8 @@ const CardDetails = () => {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors ${activeTab === tab
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                 >
                   {tab}
@@ -449,3 +648,5 @@ const CardDetails = () => {
 };
 
 export default CardDetails;
+
+

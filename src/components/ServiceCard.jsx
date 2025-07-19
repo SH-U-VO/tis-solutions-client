@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   FaStar,
   FaStarHalfAlt,
@@ -25,46 +25,46 @@ const ServiceCard = ({ service }) => {
   const navigate = useNavigate();
   const { setIsLoading } = useLoading();
   const { user } = useContext(AuthContext);
-  // const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
 
- const handleSubmit = async e => {
-  e.preventDefault();
-  const form = e.target;
-  const phoneNumber = form.phoneNumber.value;
-  const preferredDate = form.preferredDate.value;
-  const address = form.address.value;
-  const urgency = form.urgency.value;
+  const handleSubmit = async e => {
+    e.preventDefault();
+    const form = e.target;
+    const phoneNumber = form.phoneNumber.value;
+    const preferredDate = form.preferredDate.value;
+    const address = form.address.value;
+    const urgency = form.urgency.value;
 
-  const myData = {
-    consumers: {
-      ConsumerEmail: user.email || '',
-      ConsumerName: user.displayName || '',
-      phoneNumber: phoneNumber || '',
-      preferredDate: preferredDate || '',
-      address: address || '',
-      urgency: urgency || ''
+    const myData = {
+      consumers: {
+        ConsumerEmail: user.email || '',
+        ConsumerName: user.displayName || '',
+        phoneNumber: phoneNumber || '',
+        preferredDate: preferredDate || '',
+        address: address || '',
+        urgency: urgency || ''
+      }
+    };
+
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${_id}`, myData); // ✅ use myData directly
+      toast.success('Service booked successfully', {
+        duration: 4000, // stays for 7 seconds
+      });
+
+    } catch (err) {
+      console.error('Update error:', err);
+      toast.error(err.response?.data?.message || 'Failed to book service');
     }
   };
-
-  console.log(myData);
-
-  try {
-    await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${_id}`, myData); // ✅ use myData directly
-    toast.success('Service booked successfully');
-  } catch (err) {
-    console.error('Update error:', err);
-    toast.error(err.response?.data?.message || 'Failed to book service');
-  }
-};
 
 
 
   const { _id, title, description, image, rating, totalReviews, price, originalPrice, duration, location, isPopular, category, provider, availability, discount } = service || {};
 
-  // NEW: Custom toast with form
+  // Submit button toast
   const showBookingToast = () => {
     toast.custom(
       (t) => (
@@ -170,19 +170,23 @@ const ServiceCard = ({ service }) => {
               {/* Footer Buttons */}
               <div className="flex border-t border-gray-100 bg-gray-50 rounded-b-xl overflow-hidden items-center">
                 <button
+                  onClick={() => {
+                    toast.dismiss(t.id); // Dismiss FIRST
+                    setIsLoading(true);   // THEN show spinner
+                    setTimeout(() => {
+                      setIsLoading(false);
+                    }, 1100); // Optional delay
+                  }}
                   type="submit"
                   className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-base font-semibold
                      hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 
                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  Submit 
+                  Submit
                 </button>
               </div>
             </div>
           </form>
-
-
-
         </div>
       ),
       {
@@ -213,8 +217,42 @@ const ServiceCard = ({ service }) => {
     return stars;
   };
 
-  const toggleWishlist = () => {
+  useEffect(() => {
+    if (!service || !user) return;
+    if (service && user) {
+      const isAlreadyLiked = service?.wishlist.some(email => email === user.email);
+      setIsWishlisted(isAlreadyLiked);
+    }
+  }, [service, user]);
+
+  const toggleWishlist = async () => {
     setIsWishlisted(!isWishlisted);
+
+    if (!isWishlisted) {
+      try {
+        await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${_id}`, {
+          wishlistEmail: user.email,
+          inWishlist: true
+        });
+        toast.success('Added to Wishlist');
+      } catch (err) {
+        console.error('Added error:', err);
+        toast.error(err.response?.data?.message || 'Failed to Add Wishlist');
+      }
+    } else {
+      try {
+        await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${_id}`, {
+          wishlistEmail: user.email,
+          inWishlist: false
+        });
+        toast.success('Removed from Wishlist');
+      } catch (err) {
+        console.error('Removed error:', err);
+        toast.error(err.response?.data?.message || 'Failed to Remove Wishlist');
+      }
+    }
+
+
   };
 
   // Error state
