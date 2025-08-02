@@ -168,8 +168,8 @@ const AddServices = () => {
       toast.error(err.message || 'Something went wrong');
     }
 
-    console.log('Service Data:', finalData);
-    alert('Service added successfully!');
+    // console.log('Service Data:', finalData);
+    // alert('Service added successfully!');
   };
 
 
