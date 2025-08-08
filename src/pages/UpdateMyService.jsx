@@ -10,11 +10,11 @@ import axios from 'axios';
 // This is for abed
 
 const UpdateMyService = () => {
+
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
     const myAxios = useMyAxios();
-    
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [previewMode, setPreviewMode] = useState(false);
