@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { 
-  Clock, 
-  MapPin, 
-  Star, 
-  Trash2, 
-  Filter, 
-  Search, 
+import { useState } from 'react';
+import {
+  Clock,
+  MapPin,
+  Star,
+  Trash2,
+  Filter,
+  Search,
   Eye,
   Phone,
   Calendar,
@@ -15,101 +15,24 @@ import {
   Award,
   X
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
 const MyBookedServices = () => {
-  // Sample data - replace with actual data from your backend
-  const [services, setServices] = useState([
-    {
-      "_id": "68688397edb85fb641ef5531",
-      "id": 1,
-      "title": "TV and Electronic Gadgets Repair",
-      "description": "Expert repair services for TVs, laptops, smartphones, and other electronic devices. Quick diagnosis and reliable solutions.",
-      "image": "https://images.unsplash.com/photo-1581092795442-6f7c7a5f6d3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      "rating": 4.6,
-      "totalReviews": 189,
-      "price": 800,
-      "originalPrice": 1200,
-      "duration": "2-3 hours",
-      "location": "All Areas",
-      "isPopular": true,
-      "features": [
-        "Expert Technicians",
-        "Genuine Parts",
-        "30-Day Warranty",
-        "Free Diagnosis"
-      ],
-      "category": "Electronics Repair",
-      "provider": {
-        "name": "TechFix Solutions",
-        "verified": true,
-        "experience": "8+ years"
-      },
-      "availability": "Available Today",
-      "discount": 33,
-      "status": "pending",
-      "bookedDate": "2024-01-15T10:30:00Z"
-    },
-    {
-      "_id": "68688397edb85fb641ef5532",
-      "id": 2,
-      "title": "Home AC Repair & Service",
-      "description": "Professional AC repair and maintenance services. Gas filling, cleaning, and general servicing available.",
-      "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      "rating": 4.8,
-      "totalReviews": 234,
-      "price": 1500,
-      "originalPrice": 2000,
-      "duration": "1-2 hours",
-      "location": "Dhaka City",
-      "isPopular": false,
-      "features": [
-        "Licensed Technicians",
-        "Quality Parts",
-        "Same Day Service",
-        "Warranty Included"
-      ],
-      "category": "AC Repair",
-      "provider": {
-        "name": "CoolAir Services",
-        "verified": true,
-        "experience": "12+ years"
-      },
-      "availability": "Available Tomorrow",
-      "discount": 25,
-      "status": "working",
-      "bookedDate": "2024-01-14T14:00:00Z"
-    },
-    {
-      "_id": "68688397edb85fb641ef5533",
-      "id": 3,
-      "title": "Plumbing & Pipe Repair",
-      "description": "Complete plumbing solutions including pipe repair, leak fixing, and bathroom fittings installation.",
-      "image": "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      "rating": 4.4,
-      "totalReviews": 156,
-      "price": 600,
-      "originalPrice": 800,
-      "duration": "3-4 hours",
-      "location": "Gulshan Area",
-      "isPopular": true,
-      "features": [
-        "24/7 Emergency",
-        "Quality Materials",
-        "Experienced Team",
-        "Affordable Rates"
-      ],
-      "category": "Plumbing",
-      "provider": {
-        "name": "AquaFix Pro",
-        "verified": true,
-        "experience": "6+ years"
-      },
-      "availability": "Available This Week",
-      "discount": 25,
-      "status": "completed",
-      "bookedDate": "2024-01-10T09:15:00Z"
+const {data: allServices, isLoading} = useQuery({
+    queryKey: ['services'], queryFn: async () => {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/services`)
+      return data
     }
-  ]);
+  })
+
+  console.log(allServices)
+  console.log(isLoading)
+
+  // Sample data - replace with actual data from your backend
+  const [services, setServices] = useState(
+    allServices
+  );
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -120,7 +43,7 @@ const MyBookedServices = () => {
   // Filter services based on search and status
   const filteredServices = services.filter(service => {
     const matchesSearch = service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.category.toLowerCase().includes(searchTerm.toLowerCase());
+      service.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || service.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -194,20 +117,20 @@ const MyBookedServices = () => {
             <div className="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
             <div className="absolute top-0 right-1/4 w-72 h-72 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-75"></div>
           </div>
-          
+
           <div className="relative z-10 bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mb-6 shadow-lg">
               <Calendar className="w-10 h-10 text-white" />
             </div>
-            
+
             <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4 leading-tight">
               My Booked Services
             </h1>
-            
+
             <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto font-medium">
               Track and manage all your service bookings in one place
             </p>
-            
+
             {/* Status Summary */}
             <div className="flex flex-wrap justify-center gap-4 mb-6">
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border border-white/50">
@@ -244,7 +167,7 @@ const MyBookedServices = () => {
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            
+
             {/* Status Filter */}
             <div className="flex items-center space-x-3">
               <Filter className="text-gray-500 w-5 h-5" />
@@ -271,28 +194,28 @@ const MyBookedServices = () => {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No Services Found</h3>
               <p className="text-gray-600">
-                {searchTerm || statusFilter !== 'all' 
-                  ? "Try adjusting your search or filter criteria" 
+                {searchTerm || statusFilter !== 'all'
+                  ? "Try adjusting your search or filter criteria"
                   : "You haven't booked any services yet"}
               </p>
             </div>
           ) : (
             filteredServices.map((service) => {
               const statusBadge = getStatusBadge(service.status);
-              
+
               return (
                 <div key={service._id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                   <div className="p-6">
                     <div className="flex flex-col lg:flex-row gap-6">
                       {/* Service Image */}
                       <div className="lg:w-64 h-48 lg:h-40 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                        <img 
-                          src={service.image} 
+                        <img
+                          src={service.image}
                           alt={service.title}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      
+
                       {/* Service Details */}
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-3">
@@ -314,7 +237,7 @@ const MyBookedServices = () => {
                             <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
                             <p className="text-gray-600 text-sm mb-3 line-clamp-2">{service.description}</p>
                           </div>
-                          
+
                           {/* Action Buttons */}
                           <div className="flex items-center space-x-2">
                             <button
@@ -336,7 +259,7 @@ const MyBookedServices = () => {
                             </button>
                           </div>
                         </div>
-                        
+
                         {/* Service Info */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm mb-4">
                           <div className="flex items-center space-x-2">
@@ -357,7 +280,7 @@ const MyBookedServices = () => {
                             <span>{formatDate(service.bookedDate)}</span>
                           </div>
                         </div>
-                        
+
                         {/* Provider Info */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
@@ -374,7 +297,7 @@ const MyBookedServices = () => {
                               <span className="text-sm text-gray-500">{service.provider.experience}</span>
                             </div>
                           </div>
-                          
+
                           {/* Price */}
                           <div className="text-right">
                             <div className="flex items-center space-x-2">
@@ -413,14 +336,14 @@ const MyBookedServices = () => {
                     <X className="w-6 h-6" />
                   </button>
                 </div>
-                
+
                 <div className="space-y-4">
-                  <img 
-                    src={selectedService.image} 
+                  <img
+                    src={selectedService.image}
                     alt={selectedService.title}
                     className="w-full h-48 object-cover rounded-lg"
                   />
-                  
+
                   <div className="flex items-center space-x-2">
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                       {selectedService.category}
@@ -430,17 +353,17 @@ const MyBookedServices = () => {
                       <span>{getStatusBadge(selectedService.status).text}</span>
                     </span>
                   </div>
-                  
+
                   <h3 className="text-xl font-bold text-gray-900">{selectedService.title}</h3>
                   <p className="text-gray-600">{selectedService.description}</p>
-                  
+
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div><strong>Duration:</strong> {selectedService.duration}</div>
                     <div><strong>Location:</strong> {selectedService.location}</div>
                     <div><strong>Rating:</strong> {selectedService.rating} ({selectedService.totalReviews} reviews)</div>
                     <div><strong>Booked:</strong> {formatDate(selectedService.bookedDate)}</div>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold mb-2">Features:</h4>
                     <ul className="space-y-1">
@@ -452,7 +375,7 @@ const MyBookedServices = () => {
                       ))}
                     </ul>
                   </div>
-                  
+
                   <div className="flex items-center justify-between pt-4 border-t">
                     <div className="flex items-center space-x-2">
                       <Award className="w-5 h-5 text-blue-600" />
