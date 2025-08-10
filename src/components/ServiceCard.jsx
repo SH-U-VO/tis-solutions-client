@@ -44,7 +44,8 @@ const ServiceCard = ({ service }) => {
         phoneNumber: phoneNumber || '',
         preferredDate: preferredDate || '',
         address: address || '',
-        urgency: urgency || ''
+        urgency: urgency || '',
+        status: 'pending'
       }
     };
 

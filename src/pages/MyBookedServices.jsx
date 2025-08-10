@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   Clock,
   MapPin,
@@ -17,22 +17,27 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { AuthContext } from '../providers/AuthProvider';
+import toast from 'react-hot-toast';
 
 const MyBookedServices = () => {
-const {data: allServices, isLoading} = useQuery({
+  const { user } = useContext(AuthContext);
+  const { data: allServices, isLoading } = useQuery({
     queryKey: ['services'], queryFn: async () => {
       const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/services`)
       return data
     }
   })
 
-  console.log(allServices)
-  console.log(isLoading)
 
   // Sample data - replace with actual data from your backend
-  const [services, setServices] = useState(
-    allServices
-  );
+  const [services, setServices] = useState(allServices || []);
+
+  useEffect(() => {
+    if (allServices) {
+      setServices(allServices);
+    }
+  }, [allServices]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -41,12 +46,14 @@ const {data: allServices, isLoading} = useQuery({
   const [serviceToDelete, setServiceToDelete] = useState(null);
 
   // Filter services based on search and status
-  const filteredServices = services.filter(service => {
-    const matchesSearch = service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || service.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const filteredServices = services?.filter(service => {
+    // Check if any consumer in service.consumers has a matching ConsumerEmail
+    return service?.consumers?.some(consumer => {
+      return consumer?.ConsumerEmail === user.email;
+    });
   });
+
+  console.log(filteredServices)
 
   // Get status badge styling
   const getStatusBadge = (status) => {
@@ -79,7 +86,20 @@ const {data: allServices, isLoading} = useQuery({
   };
 
   // Handle service deletion
-  const handleDeleteService = (serviceId) => {
+  const handleDeleteService = async (serviceId) => {
+    const myEmail = {
+      deleteConsumerEmail: user.email
+    };
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${serviceId}`, myEmail); // ✅ use myData directly
+      toast.success('Service deleted successfully', {
+        duration: 4000, // stays for 7 seconds
+      });
+
+    } catch (err) {
+      console.error('Update error:', err);
+      toast.error(err.response?.data?.message || 'Failed to book service');
+    }
     setServices(services.filter(service => service._id !== serviceId));
     setShowDeleteModal(false);
     setServiceToDelete(null);
@@ -97,14 +117,38 @@ const {data: allServices, isLoading} = useQuery({
   };
 
   // Get service counts by status
-  const getServiceCounts = () => {
-    return {
-      all: services.length,
-      pending: services.filter(s => s.status === 'pending').length,
-      working: services.filter(s => s.status === 'working').length,
-      completed: services.filter(s => s.status === 'completed').length
-    };
+const getServiceCounts = () => {
+  // Use a fallback to an empty array to prevent errors if filteredServices is undefined or null
+  const servicesToCount = filteredServices || [];
+
+  // Use the reduce method to efficiently count all statuses in a single loop
+  const counts = servicesToCount.reduce(
+    (acc, service) => {
+      // Use .some() to check if at least one consumer in the array matches the status
+      // This is the correct way to check for the presence of a specific consumer status
+      if (service.consumers?.some((c) => c.status === 'pending')) {
+        acc.pending += 1;
+      }
+      if (service.consumers?.some((c) => c.status === 'working')) {
+        acc.working += 1;
+      }
+
+      // Check for 'completed' status on the service object itself
+      if (service.status === 'completed') {
+        acc.completed += 1;
+      }
+
+      return acc;
+    },
+    // Initialize the accumulator with a starting object of zeros
+    { pending: 0, working: 0, completed: 0 }
+  );
+
+  return {
+    all: servicesToCount.length,
+    ...counts,
   };
+};
 
   const counts = getServiceCounts();
 
@@ -187,7 +231,7 @@ const {data: allServices, isLoading} = useQuery({
 
         {/* Services List */}
         <div className="space-y-6">
-          {filteredServices.length === 0 ? (
+          {filteredServices?.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Calendar className="w-12 h-12 text-gray-400" />
@@ -200,8 +244,8 @@ const {data: allServices, isLoading} = useQuery({
               </p>
             </div>
           ) : (
-            filteredServices.map((service) => {
-              const statusBadge = getStatusBadge(service.status);
+            filteredServices?.map((service) => {
+              // const statusBadge = getStatusBadge(service.status);
 
               return (
                 <div key={service._id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -224,10 +268,27 @@ const {data: allServices, isLoading} = useQuery({
                               <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                                 {service.category}
                               </span>
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium border flex items-center space-x-1 ${statusBadge.className}`}>
-                                {statusBadge.icon}
-                                <span>{statusBadge.text}</span>
-                              </span>
+                              {/* Find matching consumer and use their status */}
+                              {service.consumers && (
+                                (() => {
+                                  const matchingConsumer = service.consumers.find(
+                                    consumer => consumer.ConsumerEmail === user.email
+                                  );
+                                  return matchingConsumer ? (
+                                    <span
+                                      className={`px-3 py-1 rounded-full text-sm font-medium border flex items-center space-x-1 ${getStatusBadge(matchingConsumer.status).className
+                                        }`}
+                                    >
+                                      {getStatusBadge(matchingConsumer.status).icon}
+                                      <span>{getStatusBadge(matchingConsumer.status).text}</span>
+                                    </span>
+                                  ) : (
+                                    <span className="px-3 py-1 rounded-full text-sm font-medium border flex items-center space-x-1 bg-gray-100 text-gray-700">
+                                      <span>No matching consumer</span>
+                                    </span>
+                                  );
+                                })()
+                              )}
                               {service.isPopular && (
                                 <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
                                   Popular
@@ -247,16 +308,33 @@ const {data: allServices, isLoading} = useQuery({
                             >
                               <Eye className="w-5 h-5" />
                             </button>
-                            <button
-                              onClick={() => {
-                                setServiceToDelete(service);
-                                setShowDeleteModal(true);
-                              }}
-                              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete Service"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
+
+                            {service.consumers && (
+                              (() => {
+                                const matchingConsumer = service.consumers.find(
+                                  consumer => consumer.ConsumerEmail === user.email
+                                );
+                                return matchingConsumer.status === 'pending' ? (
+                                  <button
+                                    onClick={() => {
+                                      setServiceToDelete(service);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    className={`p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors`}
+                                    title="Delete Service"
+                                  >
+                                    <Trash2 className="w-5 h-5" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors opacity-50 cursor-not-allowed"
+                                    title="Delete Service"
+                                  >
+                                    <Trash2 className="w-5 h-5" />
+                                  </button>
+                                );
+                              })()
+                            )}
                           </div>
                         </div>
 
@@ -348,10 +426,27 @@ const {data: allServices, isLoading} = useQuery({
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                       {selectedService.category}
                     </span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium border flex items-center space-x-1 ${getStatusBadge(selectedService.status).className}`}>
-                      {getStatusBadge(selectedService.status).icon}
-                      <span>{getStatusBadge(selectedService.status).text}</span>
-                    </span>
+                    {/* Find matching consumer and use their status */}
+                    {selectedService.consumers && (
+                      (() => {
+                        const matchingConsumer = selectedService.consumers.find(
+                          consumer => consumer.ConsumerEmail === user.email
+                        );
+                        return matchingConsumer ? (
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-medium border flex items-center space-x-1 ${getStatusBadge(matchingConsumer.status).className
+                              }`}
+                          >
+                            {getStatusBadge(matchingConsumer.status).icon}
+                            <span>{getStatusBadge(matchingConsumer.status).text}</span>
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full text-sm font-medium border flex items-center space-x-1 bg-gray-100 text-gray-700">
+                            <span>No matching consumer</span>
+                          </span>
+                        );
+                      })()
+                    )}
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900">{selectedService.title}</h3>
