@@ -53,7 +53,6 @@ const MyBookedServices = () => {
     });
   });
 
-  console.log(filteredServices)
 
   // Get status badge styling
   const getStatusBadge = (status) => {

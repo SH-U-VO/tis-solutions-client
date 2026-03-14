@@ -150,14 +150,18 @@ const UpdateMyService = () => {
     const handleSubmit = async () => {
         const filteredFeatures = formData.features.filter(feature => feature.trim() !== '');
         const finalData = {
-            ...formData,
+            updatedData: {
+                ...formData,
             features: filteredFeatures
+            }
         };
-
+  console.log('finalData:', finalData)
         // Basic validation
-        if (!finalData.title || !finalData.description || !finalData.category || !finalData.price) {
+        if (!finalData?.updatedData?.title || !finalData?.updatedData?.description || !finalData?.updatedData?.category || !finalData?.updatedData?.price) {
             return toast.error('Please fill all required fields');
         }
+        console.log('finalData:', finalData)
+        console.log('id:', id)
 
         try {
             await axios.put(`${import.meta.env.VITE_API_URL}/update-service/${id}`, finalData);

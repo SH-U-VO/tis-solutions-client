@@ -8,7 +8,6 @@ import { AuthContext } from '../providers/AuthProvider';
 const AddServices = () => {
   // mutation of tan stack query 
   const { user } = useContext(AuthContext)
-  console.log(user)
   const myAxios = useMyAxios()
   const queryClient = useQueryClient()
 

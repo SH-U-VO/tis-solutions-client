@@ -4,9 +4,24 @@ import {
   MapPin, Calendar, DollarSign
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { AuthContext } from '../providers/AuthProvider';
+import toast from 'react-hot-toast';
 
 
 const ServiceProviderDashboard = () => {
+  const { user } = useContext(AuthContext);
+  const { data: allServices, isLoading } = useQuery({
+    queryKey: ['services'], queryFn: async () => {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/services`)
+      return data
+    }
+  })
+
+    // Sample data - replace with actual data from your backend
+  const [services, setServices] = useState(allServices || []);
+
   const [requests, setRequests] = useState([
     {
       id: 1,
